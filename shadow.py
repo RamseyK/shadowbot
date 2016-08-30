@@ -61,6 +61,11 @@ def check_group_messages(config, group):
 
         print "[{}] {}: {}".format(msg['created_at'], msg['name'], msg['text'])
 
+    # Send any relay messages (if any)
+    if 'relay_message' in config:
+        relay_content = config.pop('relay_message')
+        send_group_message(config, group, relay_content)
+
 # Send a timed message from the config to a group
 def send_timed_messages(config, group):
 
@@ -98,13 +103,57 @@ def send_group_message(config, group, text):
     else:
         print "Error sending direct message: {} {}".format(r.status_code, r.text)
 
+# Parse and take action on any command sent through DM
+def process_direct_command(config, recipient_id, text):
+
+    # Syntax: !relay:<msg>
+    # If a direct message with !relay is sent, the following string will be sent as a group message by this bot
+    if text.startswith('!relay:'):
+        content = text.split(':')[1]
+        config['relay_message'] = content
+
+    # Syntax: !timed <mins from now> <msg>
+    # Add a timed message
+    elif text.startswith('!timed:'):
+        segs = text.split(':')
+        mins = int(segs[1])
+        content = segs[2]
+
+        config['timed_messages'].append({
+            'time': int(time.time()) + (mins * 60),
+            'text': content
+        })
+
+    # Syntax: !group:<group name>
+    # Switch the target group by name on the next cycle
+    elif text.startswith('!group:'):
+        target_group_name = text.split(':')[1]
+        config['target_group_name'] = target_group_name
+
+    # Syntax: !cleartimed
+    # Clear out timed messages
+    elif text.startswith('!cleartimed'):
+        config['timed_messages'] = []
+
+    # Syntax: !config
+    # Dump the config.json without the api token
+    elif text.startswith('!config'):
+        sent_config = {}
+        sent_config.update(config)
+        sent_config.pop('api_token')
+
+        send_direct_message(config, recipient_id, json.dumps(sent_config, indent=4))
+
+    else:
+        pass
+
 # Check for any new direct messages since the last run, reply with a Meow
 def check_direct_messages(config):
     r = requests.get(build_url(config, 'chats'))
 
     resp = r.json()['response']
 
-    # Get new direct messages
+    # Get new direct conversations
     print "Checking new direct messages.."
     for msg in resp:
 
@@ -112,13 +161,18 @@ def check_direct_messages(config):
         if msg['updated_at'] < config['last_runtime'] or msg['last_message']['sender_id'] == config['my_user_id']:
             continue
 
-        print "[{}] {}: {}".format(msg['created_at'], msg['other_user']['name'], msg['last_message']['text'])
+        text = msg['last_message']['text']
+        print "[{}] {}: {}".format(msg['created_at'], msg['other_user']['name'], text)
 
-        conversation_id = msg['last_message']['conversation_id']
         other_user_id = msg['other_user']['id']
 
-        # Reply to any new messages with a Meow
-        send_direct_message(config, other_user_id, "Meow")
+        # Check for a direct messaged command
+        if text.startswith('!'):
+            process_direct_command(config, other_user_id, text)
+
+        else:
+            # Otherwise, just reply to any new messages with a Meow
+            send_direct_message(config, other_user_id, "Meow")
 
 # Send a direct message to another user by id
 def send_direct_message(config, recipient_id, text):
@@ -147,8 +201,11 @@ def main():
     if 'last_runtime' not in config:
         config['last_runtime'] = 0
 
-    # Get my info
+    # Get my own user info
     get_my_info(config)
+
+    # Check direct messages
+    check_direct_messages(config)
 
     # Get target group
     group = get_target_group(config)
@@ -163,9 +220,6 @@ def main():
 
     # Send timed group messages
     send_timed_messages(config, group)
-
-    # Check direct messages
-    check_direct_messages(config)
 
     # Set the new last runtime
     config['last_runtime'] = int(time.time())
