@@ -1,0 +1,40 @@
+{
+    "my_user_id": "",
+    "api_token": ""
+    "last_runtime": 1472518644, 
+    "target_group_name": "apitest",
+    "timed_messages": [
+      {
+        "time": 1472947200,
+        "text": "Someone bring ice...and a laser pointer"
+      },
+      {
+        "time": 1472950800,
+        "text": "This song sucks, please change it."
+      },
+      {
+        "time": 1472951700,
+        "text": "Awee fuck."
+      },
+      {
+        "time": 1472952600,
+        "text": "I'm hammered"
+      },
+      {
+        "time": 1472954400,
+        "text": "I just threw up in Ty's bed"
+      },
+      {
+        "time": 1472956200,
+        "text": "Don Titos?"
+      },
+      {
+        "time": 1472958000,
+        "text": "Ty!!! Order dominoes I'll venmo you"
+      },
+      {
+        "time": 1472968800,
+        "text": "Where is everyone?"
+      }
+    ]
+}
