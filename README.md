@@ -10,9 +10,9 @@ Features
 * Relay messages to a target group via direct message commands
 * Commands via DM:
   * !config - Return config.json vars
-  * !relay:<msg> - Send a message to the target group
-  * !group:<group name> - Change the target group by name
-  * !timed:<mins>:<msg> - Schedule a message to be sent to the target group in x number of minutes
+  * !relay:msg - Send a message to the target group
+  * !group:group name - Change the target group by name
+  * !timed:mins:msg - Schedule a message to be sent to the target group in x number of minutes
   * !cleartimed - Delete all scheduled messages
 
 
