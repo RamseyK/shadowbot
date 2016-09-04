@@ -17,7 +17,7 @@ def build_url(config, endpoint):
 def msg_guid(recipient_id, text):
     m = hashlib.md5()
     m.update(recipient_id)
-    m.update(text)
+    m.update(text.encode('utf-8'))
     m.update(str(time.time()))
     return str(m.hexdigest())
 
@@ -59,7 +59,7 @@ def check_group_messages(config, group):
         if msg['created_at'] < config['last_runtime'] or msg['sender_id'] == config['my_user_id']:
             continue
 
-        print "[{}] {}: {}".format(msg['created_at'], msg['name'], msg['text'])
+        print u"[{}] {}: {}".format(msg['created_at'], msg['name'], unicode(msg['text']))
 
     # Send any relay messages (if any)
     if 'relay_message' in config:
@@ -90,6 +90,8 @@ def send_timed_messages(config, group):
 # Send a group message
 def send_group_message(config, group, text):
 
+    text = unicode(text)
+
     payload = {
         "message": {
             "source_guid": msg_guid(group['id'], text),
@@ -99,9 +101,9 @@ def send_group_message(config, group, text):
 
     r = requests.post(build_url(config, 'groups/{}/messages').format(group['id']), data=json.dumps(payload), headers=POST_HEADERS)
     if r.status_code == 201:
-        print "Sent group message {}: {}".format(group['name'], text)
+        print u"Sent group message {}: {}".format(group['name'], text)
     else:
-        print "Error sending direct message: {} {}".format(r.status_code, r.text)
+        print u"Error sending direct message: {} {}".format(r.status_code, r.text)
 
 # Parse and take action on any command sent through DM
 def process_direct_command(config, recipient_id, text):
@@ -162,7 +164,7 @@ def check_direct_messages(config):
             continue
 
         text = msg['last_message']['text']
-        print "[{}] {}: {}".format(msg['created_at'], msg['other_user']['name'], text)
+        print u"[{}] {}: {}".format(msg['created_at'], msg['other_user']['name'], unicode(text))
 
         other_user_id = msg['other_user']['id']
 
@@ -177,6 +179,8 @@ def check_direct_messages(config):
 # Send a direct message to another user by id
 def send_direct_message(config, recipient_id, text):
 
+    text = unicode(text)
+
     payload = {
         "direct_message": {
             "source_guid": msg_guid(recipient_id, text),
@@ -187,9 +191,9 @@ def send_direct_message(config, recipient_id, text):
 
     r = requests.post(build_url(config, 'direct_messages'), data=json.dumps(payload), headers=POST_HEADERS)
     if r.status_code == 201:
-        print "Sent direct message to {}: {}".format(recipient_id, text)
+        print u"Sent direct message to {}: {}".format(recipient_id, text)
     else:
-        print "Error sending direct message: {} {}".format(r.status_code, r.text)
+        print u"Error sending direct message: {} {}".format(r.status_code, r.text)
 
 def main():
 
