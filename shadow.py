@@ -164,6 +164,7 @@ def check_direct_messages(config):
             continue
 
         text = msg['last_message']['text']
+
         #print u"[{}] {}: {}".format(msg['created_at'], msg['other_user']['name'], unicode(text))
 
         other_user_id = msg['other_user']['id']
