@@ -52,7 +52,7 @@ def check_group_messages(config, group):
     resp = r.json()['response']
 
     # Get new messages
-    print "Checking group messages.."
+    print("Checking group messages..")
     for msg in resp['messages']:
 
         # If the message was before the last runtime, OR sent by me, we've already seen it
@@ -164,7 +164,6 @@ def check_direct_messages(config):
             continue
 
         text = msg['last_message']['text']
-
         #print u"[{}] {}: {}".format(msg['created_at'], msg['other_user']['name'], unicode(text))
 
         other_user_id = msg['other_user']['id']
@@ -206,25 +205,30 @@ def main():
     if 'last_runtime' not in config:
         config['last_runtime'] = 0
 
-    # Get my own user info
-    get_my_info(config)
+    try:
 
-    # Check direct messages
-    check_direct_messages(config)
+        # Get my own user info
+        get_my_info(config)
 
-    # Get target group
-    group = get_target_group(config)
-    if not group:
-        print "Could not find target group"
-        exit(-1)
+        # Check direct messages
+        check_direct_messages(config)
 
-    print "Group: {}".format(group)
+        # Get target group
+        group = get_target_group(config)
+        if not group:
+            print("Could not find target group")
+            exit(-1)
 
-    # Check group messages for mentions
-    check_group_messages(config, group)
+        print("Group: {}".format(group))
 
-    # Send timed group messages
-    send_timed_messages(config, group)
+        # Check group messages for mentions
+        check_group_messages(config, group)
+
+        # Send timed group messages
+        send_timed_messages(config, group)
+
+    except Exception as e:
+        print("Error: {}".format(e))
 
     # Set the new last runtime
     config['last_runtime'] = int(time.time())
